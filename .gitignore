@@ -1,0 +1,41 @@
+# Node modules
+node_modules/
+
+# Build output
+.next/
+out/
+dist/
+
+# Environment variables (secrets)
+.env
+.env.local
+.env.development
+.env.production
+supabase/.env
+supabase/.temp/
+supabase/.settings/
+
+# Supabase generated folders
+supabase/.branches/
+supabase/.temp/
+supabase/.logs/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# TypeScript build files
+*.tsbuildinfo
+
+# Misc
+*.log

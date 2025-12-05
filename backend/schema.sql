@@ -1,57 +1,57 @@
--- LearnLynk Tech Test - Task 1: Schema
--- Fill in the definitions for leads, applications, tasks as per README.
+-- ===========================
+--   LEARNLYNK TECH TEST
+--   SECTION 1 — SCHEMA
+-- ===========================
 
-create extension if not exists "pgcrypto";
-
--- Leads table
-create table if not exists public.leads (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid not null,
-  owner_id uuid not null,
-  email text,
-  phone text,
-  full_name text,
-  stage text not null default 'new',
-  source text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+-- 1️⃣ LEADS TABLE
+CREATE TABLE public.leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    owner_id UUID NOT NULL,
+    stage TEXT NOT NULL DEFAULT 'new',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- TODO: add useful indexes for leads:
--- - by tenant_id, owner_id, stage, created_at
+-- Indexes for common queries
+CREATE INDEX idx_leads_owner ON public.leads(owner_id);
+CREATE INDEX idx_leads_stage ON public.leads(stage);
+CREATE INDEX idx_leads_created ON public.leads(created_at);
 
+-----------------------------------------------------
 
--- Applications table
-create table if not exists public.applications (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid not null,
-  lead_id uuid not null references public.leads(id) on delete cascade,
-  program_id uuid,
-  intake_id uuid,
-  stage text not null default 'inquiry',
-  status text not null default 'open',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+-- 2️⃣ APPLICATIONS TABLE
+CREATE TABLE public.applications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    lead_id UUID NOT NULL REFERENCES public.leads(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- TODO: add useful indexes for applications:
--- - by tenant_id, lead_id, stage
+-- Index: fetch applications by lead
+CREATE INDEX idx_applications_lead ON public.applications(lead_id);
 
+-----------------------------------------------------
 
--- Tasks table
-create table if not exists public.tasks (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid not null,
-  application_id uuid not null references public.applications(id) on delete cascade,
-  title text,
-  type text not null,
-  status text not null default 'open',
-  due_at timestamptz not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+-- 3️⃣ TASKS TABLE
+CREATE TABLE public.tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    related_id UUID NOT NULL REFERENCES public.applications(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    due_at TIMESTAMPTZ NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    -- due_at >= created_at
+    CONSTRAINT tasks_due_at_check CHECK (due_at >= created_at),
+
+    -- task_type check constraint
+    CONSTRAINT tasks_type_check CHECK (type IN ('call','email','review'))
 );
 
--- TODO:
--- - add check constraint for type in ('call','email','review')
--- - add constraint that due_at >= created_at
--- - add indexes for tasks due today by tenant_id, due_at, status
+-- Index: fetch tasks due today
+CREATE INDEX idx_tasks_due_at ON public.tasks(due_at);

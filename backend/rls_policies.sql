@@ -1,25 +1,47 @@
--- LearnLynk Tech Test - Task 2: RLS Policies on leads
+-- ===========================================
+--   LEARNLYNK TECH TEST — RLS POLICIES
+-- ===========================================
 
-alter table public.leads enable row level security;
+-- Enable Row Level Security on leads table
+ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 
--- Example helper: assume JWT has tenant_id, user_id, role.
--- You can use: current_setting('request.jwt.claims', true)::jsonb
+---------------------------------------------------------------
+-- 1️⃣ SELECT POLICY
+-- Counselors can read:
+--   • leads assigned to them
+--   • leads assigned to ANY user in their team
+-- Admins can read all leads
+---------------------------------------------------------------
 
--- TODO: write a policy so:
--- - counselors see leads where they are owner_id OR in one of their teams
--- - admins can see all leads of their tenant
+CREATE POLICY "select_leads_policy"
+ON public.leads
+FOR SELECT
+USING (
+    -- Admins can read all
+    auth.jwt()->>'role' = 'admin'
 
+    -- Counselors can read their own leads
+    OR owner_id = auth.uid()
 
--- Example skeleton for SELECT (replace with your own logic):
-
-create policy "leads_select_policy"
-on public.leads
-for select
-using (
-  true
-  -- TODO: add real RLS logic here, refer to README instructions
+    -- Counselors can read leads of users in the same team
+    OR owner_id IN (
+        SELECT ut2.user_id
+        FROM user_teams ut1
+        JOIN user_teams ut2 ON ut1.team_id = ut2.team_id
+        WHERE ut1.user_id = auth.uid()
+    )
 );
 
--- TODO: add INSERT policy that:
--- - allows counselors/admins to insert leads for their tenant
--- - ensures tenant_id is correctly set/validated
+---------------------------------------------------------------
+-- 2️⃣ INSERT POLICY
+-- Admins can insert any lead.
+-- Counselors can insert leads ONLY if owner_id = themselves.
+---------------------------------------------------------------
+
+CREATE POLICY "insert_leads_policy"
+ON public.leads
+FOR INSERT
+WITH CHECK (
+    auth.jwt()->>'role' = 'admin'
+    OR owner_id = auth.uid()
+);
