@@ -14,7 +14,7 @@ To implement Stripe Checkout for an application fee, I would create a backend en
 
 ### 1. Clone repo
 ```bash
-git clone 
+git clone https://github.com/meetkavad/learnlynk-task.git
 cd learnlynk-tech-test
 ```
 ### 2. Install Dependencies
