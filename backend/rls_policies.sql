@@ -1,17 +1,7 @@
--- ===========================================
---   LEARNLYNK TECH TEST — RLS POLICIES
--- ===========================================
-
 -- Enable Row Level Security on leads table
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 
----------------------------------------------------------------
 -- 1️⃣ SELECT POLICY
--- Counselors can read:
---   • leads assigned to them
---   • leads assigned to ANY user in their team
--- Admins can read all leads
----------------------------------------------------------------
 
 CREATE POLICY "select_leads_policy"
 ON public.leads
@@ -32,11 +22,7 @@ USING (
     )
 );
 
----------------------------------------------------------------
 -- 2️⃣ INSERT POLICY
--- Admins can insert any lead.
--- Counselors can insert leads ONLY if owner_id = themselves.
----------------------------------------------------------------
 
 CREATE POLICY "insert_leads_policy"
 ON public.leads

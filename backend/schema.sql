@@ -1,8 +1,3 @@
--- ===========================
---   LEARNLYNK TECH TEST
---   SECTION 1 — SCHEMA
--- ===========================
-
 -- 1️⃣ LEADS TABLE
 CREATE TABLE public.leads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
